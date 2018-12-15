@@ -1,0 +1,19 @@
+{
+    "name": "lin07ux/ant-open",
+    "description": "A sdk for Ant Financial Open Platform",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lin07ux",
+            "email": "linshengli.linux7@icloud.com",
+            "homepage": "https://github.com/Lin07ux"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "AntOpen\\": "src/"
+        }
+    }
+}
