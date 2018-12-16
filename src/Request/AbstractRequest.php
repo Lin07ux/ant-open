@@ -21,11 +21,6 @@ abstract class AbstractRequest
     protected $apiVersion = "1.0";
 
     /**
-     * @var string 认证内容
-     **/
-    protected $bizContent;
-
-    /**
      * @var bool 是否需要加密
      */
     protected $needEncrypt = false;
@@ -102,9 +97,9 @@ abstract class AbstractRequest
      *
      * @return $this
      */
-    public function setBizContent ($content)
+    public function setBizContent (array $content)
     {
-        $this->apiParams["biz_content"] = $this->bizContent = is_array($content) ? json_encode($content) : $content;
+        $this->apiParams["biz_content"] = json_encode($content, JSON_UNESCAPED_UNICODE);
 
         return $this;
     }
@@ -116,7 +111,7 @@ abstract class AbstractRequest
      */
     public function getBizContent ()
     {
-        return $this->bizContent;
+        return $this->apiParams["biz_content"];
     }
 
     /**
