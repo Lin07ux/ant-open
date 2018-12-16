@@ -8,6 +8,9 @@
 
 namespace AntOpen;
 
+use AntOpen\Exception\InvalidRequestContentException;
+use AntOpen\Request\AbstractRequest;
+
 class AlipayClient
 {
     /**
@@ -225,12 +228,18 @@ class AlipayClient
     /**
      * 设置签名类别
      *
-     * @param  string  $signType
+     * @param  string  $type
      * @return $this
      */
-    public function setSignType ($signType)
+    public function setSignType ($type)
     {
-        $this->signType = empty($signType) ? 'RSA2' : $signType;
+        $type = strtoupper($type);
+
+        if (! in_array($type, ['RSA', 'RSA2'])) {
+            throw new \InvalidArgumentException('The sign type can only be RSA or RSA2');
+        }
+
+        $this->signType = $type;
 
         return $this;
     }
