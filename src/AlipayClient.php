@@ -1,6 +1,6 @@
 <?php
 /**
- * Description
+ * 蚂蚁金服开放平台 API 接口请求客户端类
  *
  * Author: Lin07ux
  * Created_at: 2018-12-15 23:59:11
@@ -8,13 +8,12 @@
 
 namespace AntOpen;
 
-
-class AntClient
+class AlipayClient
 {
     /**
      * API 版本号
      */
-    const API_VERSION = '1.0';
+    const VERSION = '1.0';
 
     /**
      * 加密类型
@@ -25,6 +24,11 @@ class AntClient
      * @var string 网关
      */
     protected $gateway = 'https://openapi.alipay.com/gateway.do';
+
+    /**
+     * @var string 签名类型
+     */
+    protected $signType = "RSA2";
 
     /**
      * @var string 应用 APP ID
@@ -45,26 +49,6 @@ class AntClient
      * @var string 加密密钥
      */
     protected $encryptKey;
-
-    /**
-     * @var string 返回数据格式
-     */
-    protected $format = "json";
-
-    /**
-     * @var string 签名类型
-     */
-    protected $signType = "RSA2";
-
-    /**
-     * @var string 提交数据字符集编码
-     */
-    protected $postCharset = "UTF-8";
-
-    /**
-     * @var string 本地数据字符集编码
-     */
-    protected $fileCharset = "UTF-8";
 
     /**
      * AntClient constructor.
@@ -229,29 +213,6 @@ class AntClient
     }
 
     /**
-     * 获取请求响应数据格式
-     *
-     * @return string
-     */
-    public function getFormat ()
-    {
-        return $this->format;
-    }
-
-    /**
-     * 设置请求响应数据格式
-     *
-     * @param  string  $format
-     * @return $this
-     */
-    public function setFormat ($format)
-    {
-        $this->format = empty($format) ? 'json' : $format;
-
-        return $this;
-    }
-
-    /**
      * 获取签名类别
      *
      * @return string
@@ -270,52 +231,6 @@ class AntClient
     public function setSignType ($signType)
     {
         $this->signType = empty($signType) ? 'RSA2' : $signType;
-
-        return $this;
-    }
-
-    /**
-     * 获取提交时数据的字符集编码
-     *
-     * @return string
-     */
-    public function getPostCharset ()
-    {
-        return $this->postCharset;
-    }
-
-    /**
-     * 设置提交时数据的字符集编码
-     *
-     * @param  string  $postCharset
-     * @return $this
-     */
-    public function setPostCharset ($postCharset)
-    {
-        $this->postCharset = $this->isEmpty($postCharset) ? 'UTF-8' : $postCharset;
-
-        return $this;
-    }
-
-    /**
-     * 获取本地字符集编码
-     *
-     * @return string
-     */
-    public function getFileCharset ()
-    {
-        return $this->fileCharset;
-    }
-
-    /**
-     * 设置本地字符集编码
-     *
-     * @param  string  $fileCharset
-     * @return $this
-     */
-    public function setFileCharset ($fileCharset)
-    {
-        $this->fileCharset = $fileCharset;
 
         return $this;
     }
