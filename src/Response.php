@@ -43,21 +43,24 @@ class Response
     /**
      * SignData constructor.
      *
-     * @param  string  $apiName
      * @param  string  $content
+     * @param  string  $apiName
      * @param  string  $format
      */
-    public function __construct ($apiName, $content, $format = 'json')
+    public function __construct ($content, $apiName, $format = 'json')
     {
-        $responseKeyName = $this->getResponseKeyName($apiName);
-        $format = strtolower($format);
-
-        if ($format === 'json') {
-            $this->parseJson($responseKeyName, $content);
-        } else if ($format === 'xml') {
-            $this->parseXML($responseKeyName, $content);
-        } else {
-            throw new \InvalidArgumentException('Unsupported format type! Only supports json or xml');
+        switch (strtolower($format)) {
+            case 'json':
+                $this->parseJson($content, $apiName);
+                break;
+            case 'query':
+                $this->parseQuery($content, $apiName);
+                break;
+            case 'xml':
+                $this->parseXML($content, $apiName);
+                break;
+            default:
+                throw new \InvalidArgumentException('Unsupported format type! Only supports json or xml');
         }
     }
 
@@ -153,37 +156,54 @@ class Response
     /**
      * 解析 json 数据
      *
-     * @param  string  $responseKeyName
      * @param  string  $content
+     * @param  string  $apiName
+     * @return void
      */
-    protected function parseJson ($responseKeyName, $content)
+    protected function parseJson ($content, $apiName)
     {
         $response = json_decode($content, true);
 
         if (! empty($response)) {
+            $responseKeyName = $this->getResponseKeyName($apiName);
+
             $this->sign = empty($response[self::SIGN_NODE_NAME]) ? null : $response[self::SIGN_NODE_NAME];
             $this->response = empty($response[$responseKeyName]) ? [] : $response[$responseKeyName];
         }
     }
 
     /**
+     * 解析查询字符串数据
+     *
+     * @param  string  $content 响应数据
+     * @param  string  $sign    响应签名
+     * @return void
+     */
+    protected function parseQuery ($content, $sign)
+    {
+        $this->sign = $sign ?: null;
+        $this->response = json_decode($content, true) ?: [];
+    }
+
+    /**
      * 解析 xml 数据
      *
-     * @param  string  $responseKeyName
      * @param  string  $content
+     * @param  string  $apiName
+     * @return void
      */
-    protected function parseXML ($responseKeyName, $content)
+    protected function parseXML ($content, $apiName)
     {
         $disableLibxmlEntityLoader = libxml_disable_entity_loader(true);
 
         if ($response = @simplexml_load_string($content)) {
             $response = (array)$response;
 
-            $this->sign = $response[self::SIGN_NODE_NAME];
+            $this->sign = empty($response[self::SIGN_NODE_NAME]) ? null : $response[self::SIGN_NODE_NAME];
 
             unset($response[self::SIGN_NODE_NAME]);
 
-            $this->response = empty($response) ? $this->getResponseFromXML($responseKeyName, $content) : $response;
+            $this->response = empty($response) ? $this->getResponseFromXML($apiName, $content) : $response;
         }
 
         libxml_disable_entity_loader($disableLibxmlEntityLoader);
@@ -192,13 +212,13 @@ class Response
     /**
      * 从原始 xml 数据中获取响应数据
      *
-     * @param  string  $responseKeyName
      * @param  string  $content
+     * @param  string  $apiName
      * @return array|null
      */
-    private function getResponseFromXML($responseKeyName, $content)
+    private function getResponseFromXML ($content, $apiName)
     {
-        $nodeName = "<{$responseKeyName}>";
+        $nodeName = "<{$this->getResponseKeyName($apiName)}>";
         $startIndex = strpos($content, $nodeName);
         $length = 0;
 

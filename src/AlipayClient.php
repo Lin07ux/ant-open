@@ -267,7 +267,7 @@ class AlipayClient
 
         // 发送请求，生成响应
         $response = $this->post($this->buildRequestUrl($sysParams), $apiParams);
-        $response = new Response($request->getApiMethodName(), $response);
+        $response = new Response($response, $request->getApiMethodName());
 
         if (! $response->verifySignature($this->getAlipayRsaPublicKey(), $this->getSignType())) {
             throw new BadResponseException($response->getSubMessage() ?: 'Failure to verify data signature');
