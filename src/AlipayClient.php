@@ -256,7 +256,7 @@ class AlipayClient
      *
      * @param  AbstractRequest  $request
      * @param  string|null      $appAuthToken
-     * @return
+     * @return Response
      */
     public function request (AbstractRequest $request, $appAuthToken = null)
     {
@@ -277,7 +277,7 @@ class AlipayClient
             throw new BadResponseException($response->getSubMessage() ?: 'Server returns an exception response!');
         }
 
-        return $response->getResponse();
+        return $response;
     }
 
     /**
