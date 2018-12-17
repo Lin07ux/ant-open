@@ -51,6 +51,18 @@ abstract class AbstractRequest
     protected $terminalType;
 
     /**
+     * AbstractRequest constructor.
+     *
+     * @param  array  $bizContent
+     */
+    public function __construct (array $bizContent = [])
+    {
+        if (! empty($bizContent)) {
+            $this->setBizContent($bizContent);
+        }
+    }
+
+    /**
      * 获取 API 签名
      *
      * @return string
