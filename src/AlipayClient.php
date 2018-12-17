@@ -270,7 +270,7 @@ class AlipayClient
         $response = new Response($request->getApiMethodName(), $response);
 
         if (! $response->verifySignature($this->getAlipayRsaPublicKey(), $this->getSignType())) {
-            throw new BadResponseException('Failure to verify data signature');
+            throw new BadResponseException($response->getSubMessage() ?: 'Failure to verify data signature');
         }
 
         if (! $response->isSuccess()) {
@@ -278,6 +278,22 @@ class AlipayClient
         }
 
         return $response;
+    }
+
+    /**
+     * 页面提交执行方法
+     *
+     * @param  AbstractRequest  $request    跳转类接口的 request
+     * @param  string           $httpMethod 提交方式(post、get)
+     * @param  string|null      $appAuthToken
+     * @return string 跳转 URL(GET) 或 HTML 表单(POST)
+     */
+    public function requestFromPage (AbstractRequest $request, $httpMethod = "POST", $appAuthToken = null)
+    {
+        $params = array_merge($this->getApiParams($request), $this->getSystemParams($request, $appAuthToken));
+        $params['sign'] = $this->sign($this->buildParamsString($params));
+
+        return "GET" === strtoupper($httpMethod) ? $this->buildRequestUrl($params) : $this->buildRequestForm($params);
     }
 
     /**
@@ -365,6 +381,31 @@ class AlipayClient
     }
 
     /**
+     * 以 HTML 表单形式构造请求
+     *
+     * @param  array  $params 请求参数数组
+     * @return string
+     */
+    protected function buildRequestForm ($params)
+    {
+        $action = $this->getGateway().'?charset='.self::CHARSET;
+        $form = '<form id="alipaysubmit" name="alipaysubmit" action="'.$action.'" method="POST">';
+
+        foreach ($params as $key => $val) {
+            if (! $this->isEmpty($val)) {
+                $val = str_replace("'", "&apos;", $val);
+                $form .= "<input type='hidden' name='{$key}' value='{$val}'/>";
+            }
+        }
+
+        // submit 按钮控件请不要含有 name 属性
+        $form .= '<input type="submit" value="ok" style="display:none;"></form>';
+        $form .= '<script>document.forms["alipaysubmit"].submit();</script>';
+
+        return $form;
+    }
+
+    /**
      * 对数据进行签名
      *
      * @param  string  $content 签名内容
@@ -434,7 +475,7 @@ class AlipayClient
      * @param  mixed  $value
      * @return bool
      **/
-    private function isEmpty($value)
+    private function isEmpty ($value)
     {
         return $value === false || $value === null || trim($value) === "";
     }
