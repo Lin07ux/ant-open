@@ -161,8 +161,8 @@ class Response
         $response = json_decode($content, true);
 
         if (! empty($response)) {
-            $this->sign = $response[self::SIGN_NODE_NAME];
-            $this->response = $response[$responseKeyName];
+            $this->sign = empty($response[self::SIGN_NODE_NAME]) ? null : $response[self::SIGN_NODE_NAME];
+            $this->response = empty($response[$responseKeyName]) ? [] : $response[$responseKeyName];
         }
     }
 
