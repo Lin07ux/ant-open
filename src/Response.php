@@ -31,6 +31,11 @@ class Response
     const ENCRYPT_XML_NODE_NAME = 'response_encrypted';
 
     /**
+     * 成功响应时的 code 值
+     */
+    const SUCCESS_CODE = '10000';
+
+    /**
      * @var array 响应数据
      */
     protected $response = [];
@@ -110,7 +115,15 @@ class Response
      */
     public function isSuccess ()
     {
-        return ! empty($this->response) && empty($this->response['sub_code']);
+        if (! empty($this->response)) {
+            if (empty($this->response['code'])) {
+                return empty($this->response['sub_code']);
+            }
+
+            return $this->response['code'] === self::SUCCESS_CODE;
+        }
+
+        return false;
     }
 
     /**
