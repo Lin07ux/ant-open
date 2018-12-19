@@ -46,6 +46,11 @@ class Response
     protected $sign = null;
 
     /**
+     * @var string 原始响应数据
+     */
+    protected $content;
+
+    /**
      * SignData constructor.
      *
      * @param  string  $content
@@ -98,11 +103,10 @@ class Response
      */
     public function verifySignature ($publicKey, $signType = 'RSA2')
     {
-        if (! empty($this->sign) && ! empty($this->response)) {
-            $data = json_encode($this->response, JSON_UNESCAPED_UNICODE);
+        if (! empty($this->sign) && ! empty($this->content)) {
             $alg = 'RSA' === strtolower($signType) ? OPENSSL_ALGO_SHA1 : OPENSSL_ALGO_SHA256;
 
-            return openssl_verify($data, base64_decode($this->sign), $publicKey, $alg) === 1;
+            return openssl_verify($this->content, base64_decode($this->sign), $publicKey, $alg) === 1;
         }
 
         return false;
@@ -178,10 +182,13 @@ class Response
         $response = json_decode($content, true);
 
         if (! empty($response)) {
+            $this->sign = empty($response[self::SIGN_NODE_NAME]) ? null : $response[self::SIGN_NODE_NAME];
             $responseKeyName = $this->getResponseKeyName($apiName);
 
-            $this->sign = empty($response[self::SIGN_NODE_NAME]) ? null : $response[self::SIGN_NODE_NAME];
-            $this->response = empty($response[$responseKeyName]) ? [] : $response[$responseKeyName];
+            if (! empty($response[$responseKeyName])) {
+                $this->content = json_encode($response[$responseKeyName], JSON_UNESCAPED_UNICODE);
+                $this->response = json_decode($this->formatJsonString($this->content), true);
+            }
         }
     }
 
@@ -195,7 +202,8 @@ class Response
     protected function parseQuery ($content, $sign)
     {
         $this->sign = $sign ?: null;
-        $this->response = json_decode($content, true) ?: [];
+        $this->response = json_decode($this->formatJsonString($content), true) ?: [];
+        $this->content = $content;
     }
 
     /**
@@ -216,7 +224,12 @@ class Response
 
             unset($response[self::SIGN_NODE_NAME]);
 
-            $this->response = empty($response) ? $this->getResponseFromXML($apiName, $content) : $response;
+            if (! empty($response)) {
+                $this->parseResponseFromXML($content, $apiName);
+            } else {
+                $this->response = $response;
+                $this->content = json_encode($response, JSON_UNESCAPED_UNICODE);
+            }
         }
 
         libxml_disable_entity_loader($disableLibxmlEntityLoader);
@@ -227,9 +240,9 @@ class Response
      *
      * @param  string  $content
      * @param  string  $apiName
-     * @return array|null
+     * @return void
      */
-    private function getResponseFromXML ($content, $apiName)
+    private function parseResponseFromXML ($content, $apiName)
     {
         $nodeName = "<{$this->getResponseKeyName($apiName)}>";
         $startIndex = strpos($content, $nodeName);
@@ -245,7 +258,24 @@ class Response
             $length = strrpos($content, '<'.self::SIGN_NODE_NAME.'>') - $startIndex;
         }
 
-        return $length > 0 ? json_decode(substr($content, $startIndex, $length), true) : null;
+        if ($length > 0) {
+            $this->content = substr($content, $startIndex, $length);
+            $this->response = json_decode($this->formatJsonString($content), true);
+        }
+    }
+
+    /**
+     * 处理 json 字符串，替换不必要的符号
+     *
+     * @param  string  $string
+     * @return string
+     */
+    private function formatJsonString ($string)
+    {
+        $search = ['"[', ']"', '"{', '}"', '\"'];
+        $replace = ['[', ']', '{', '}', '"'];
+
+        return str_replace($search, $replace, $string);
     }
 
     /**
