@@ -119,11 +119,15 @@ abstract class AbstractRequest
     /**
      * 获取认证内容
      *
-     * @return string
+     * @return array|null
      */
     public function getBizContent ()
     {
-        return $this->apiParams["biz_content"];
+        if (isset($this->apiParams["biz_content"])) {
+            return json_decode($this->apiParams["biz_content"], JSON_UNESCAPED_UNICODE);
+        }
+
+        return null;
     }
 
     /**
