@@ -20,10 +20,10 @@ class Encrypt
     public static function encrypt ($str, $secret)
     {
         // AES, 128 模式加密数据 CBC
-        $str = self::addPKCS7Padding(trim($str));
-
         $size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-        $iv = pack('H*', str_pad('', $size * 2, '0'));
+        $iv = str_repeat("\0", $size);
+        $str = self::addPKCS7Padding(trim($str), $size);
+
         $encrypt_str = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, base64_decode($secret), $str, MCRYPT_MODE_CBC, $iv);
 
         return base64_encode($encrypt_str);
@@ -36,35 +36,27 @@ class Encrypt
      * @param  string  $secret
      * @return string
      */
-    public static function decrypt($str, $secret)
+    public static function decrypt ($str, $secret)
     {
         // AES, 128 模式加密数据 CBC
-        $size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-        $iv = pack('H*', str_pad('', $size * 2, '0'));
-        $encrypt_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, base64_decode($secret), base64_decode($str), MCRYPT_MODE_CBC, $iv);
+        $iv = str_repeat("\0", mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC));
+        $decrypt_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, base64_decode($secret), base64_decode($str), MCRYPT_MODE_CBC, $iv);
 
-        return self::stripPKSC7Padding($encrypt_str);
+        return self::stripPKSC7Padding($decrypt_str);
     }
 
     /**
      * PKCS7 填充
      *
      * @param  string  $source
+     * @param  integer $size
      * @return string
      */
-    public static function addPKCS7Padding($source)
+    public static function addPKCS7Padding ($source, $size)
     {
-        $source = trim($source);
-        $block = mcrypt_get_block_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
+        $pad = $size - (strlen($source) % $size);
 
-        $pad = $block - (strlen($source) % $block);
-
-        if ($pad <= $block) {
-            $char = chr($pad);
-            $source .= str_repeat($char, $pad);
-        }
-
-        return $source;
+        return $source.str_repeat(chr($pad), $pad);
     }
 
     /**
@@ -73,9 +65,8 @@ class Encrypt
      * @param  string  $source
      * @return string
      */
-    public static function stripPKSC7Padding($source)
+    public static function stripPKSC7Padding ($source)
     {
-        $source = trim($source);
         $num = ord(substr($source, -1));
 
         return $num === 62 ? $source : substr($source, 0, -$num);
