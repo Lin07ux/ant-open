@@ -309,7 +309,7 @@ class AlipayClient
         $apiParams = $request->getApiParams();
 
         if ($request->getNeedEncrypt()) {
-            $sysParams["encrypt_type"] = self::ENCRYPT_TYPE;
+            $apiParams["encrypt_type"] = self::ENCRYPT_TYPE;
 
             if ($this->isEmpty($apiParams['biz_content'])) {
                 throw new InvalidRequestContentException("The biz_content of request can not be empty");
