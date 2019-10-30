@@ -13,62 +13,30 @@ class Encrypt
     /**
      * 加密
      *
-     * @param  string  $str
-     * @param  string  $secret
-     * @return string
+     * @param  string  $string 明文字符串
+     * @param  string  $secret 加密密钥
+     *
+     * @return string  返回 Base64 编码后的加密结果
      */
-    public static function encrypt ($str, $secret)
+    public static function encrypt ($string, $secret)
     {
-        // AES, 128 模式加密数据 CBC
-        $size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC);
-        $iv = str_repeat("\0", $size);
-        $str = self::addPKCS7Padding(trim($str), $size);
+        $iv = str_repeat("\0", openssl_cipher_iv_length("AES-256-CBC"));
 
-        $encrypt_str = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, base64_decode($secret), $str, MCRYPT_MODE_CBC, $iv);
-
-        return base64_encode($encrypt_str);
+        return openssl_encrypt($string, 'AES-256-CBC', $secret, 0, $iv);
     }
 
     /**
      * 解密
      *
-     * @param  string  $str
-     * @param  string  $secret
-     * @return string
-     */
-    public static function decrypt ($str, $secret)
-    {
-        // AES, 128 模式加密数据 CBC
-        $iv = str_repeat("\0", mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_CBC));
-        $decrypt_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, base64_decode($secret), base64_decode($str), MCRYPT_MODE_CBC, $iv);
-
-        return self::stripPKSC7Padding($decrypt_str);
-    }
-
-    /**
-     * PKCS7 填充
+     * @param  string  $string 待解密字符串
+     * @param  string  $secret 解密密钥
      *
-     * @param  string  $source
-     * @param  integer $size
      * @return string
      */
-    public static function addPKCS7Padding ($source, $size)
+    public static function decrypt ($string, $secret)
     {
-        $pad = $size - (strlen($source) % $size);
+        $iv = str_repeat("\0", openssl_cipher_iv_length("AES-256-CBC"));
 
-        return $source.str_repeat(chr($pad), $pad);
-    }
-
-    /**
-     * 移去 OKCS7 填充
-     *
-     * @param  string  $source
-     * @return string
-     */
-    public static function stripPKSC7Padding ($source)
-    {
-        $num = ord(substr($source, -1));
-
-        return $num === 62 ? $source : substr($source, 0, -$num);
+        return openssl_decrypt(base64_decode($string), 'AES-256-CBC', $secret, OPENSSL_RAW_DATA, $iv);
     }
 }
