@@ -10,7 +10,13 @@
             "homepage": "https://github.com/Lin07ux"
         }
     ],
-    "require": {},
+    "require": {
+        "ext-openssl": "*",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-libxml": "*",
+        "ext-simplexml": "*"
+    },
     "autoload": {
         "psr-4": {
             "AntOpen\\": "src/"
