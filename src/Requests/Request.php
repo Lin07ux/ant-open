@@ -6,19 +6,24 @@
  * Created_at: 2018-12-16 00:19:02
  */
 
-namespace AntOpen\Request;
+namespace AntOpen\Requests;
 
-abstract class AbstractRequest
+class Request
 {
     /**
-     * @var array 接口请求参数
+     * @var string 接口签名
      */
-    protected $apiParams = [];
+    protected $method;
 
     /**
      * @var string 接口版本
      */
-    protected $apiVersion = "1.0";
+    protected $version = "1.0";
+
+    /**
+     * @var array 接口请求参数
+     */
+    protected $apiParams = [];
 
     /**
      * @var bool 是否需要加密
@@ -51,7 +56,7 @@ abstract class AbstractRequest
     protected $terminalType;
 
     /**
-     * AbstractRequest constructor.
+     * Request constructor.
      *
      * @param  array  $bizContent
      */
@@ -67,7 +72,20 @@ abstract class AbstractRequest
      *
      * @return string
      */
-    abstract public function getApiMethodName ();
+    public function getMethod ()
+    {
+        // 使用类名格式化得到接口签名，如：对于 ZhimaCustomerCertificationInitializeRequest 类
+        // 解析得到的签名字符串为 zhima.customer.certification.initialize
+        if (empty($this->method)) {
+            $method = explode('\\', static::class);
+            $method = str_replace('Request', '', end($method));
+            $method = preg_replace('/([A-Z])/', '.$1', $method);
+
+            $this->method = strtolower(trim($method, '.')) ?: 'non.existent';
+        }
+
+        return $this->method;
+    }
 
     /**
      * 获取接口请求参数
@@ -82,12 +100,13 @@ abstract class AbstractRequest
     /**
      * 设置 API 版本
      *
-     * @param  string $apiVersion
+     * @param  string  $version
+     *
      * @return $this
      */
-    public function setApiVersion ($apiVersion)
+    public function setVersion ($version)
     {
-        $this->apiVersion = $apiVersion;
+        $this->version = $version;
 
         return $this;
     }
@@ -97,9 +116,9 @@ abstract class AbstractRequest
      *
      * @return string
      */
-    public function getApiVersion ()
+    public function getVersion ()
     {
-        return $this->apiVersion;
+        return $this->version;
     }
 
     /**

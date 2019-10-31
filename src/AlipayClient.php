@@ -11,7 +11,7 @@ namespace AntOpen;
 use AntOpen\Exception\BadRequestException;
 use AntOpen\Exception\BadResponseException;
 use AntOpen\Exception\InvalidRequestContentException;
-use AntOpen\Request\AbstractRequest;
+use AntOpen\Requests\Request;
 
 class AlipayClient
 {
@@ -254,11 +254,12 @@ class AlipayClient
     /**
      * 执行请求
      *
-     * @param  AbstractRequest  $request
-     * @param  string|null      $appAuthToken
+     * @param  Request     $request
+     * @param  string|null $appAuthToken
+     *
      * @return Response
      */
-    public function request (AbstractRequest $request, $appAuthToken = null)
+    public function request (Request $request, $appAuthToken = null)
     {
         // 生成 业务参数 和 系统参数
         $apiParams = $this->getApiParams($request);
@@ -283,12 +284,13 @@ class AlipayClient
     /**
      * 页面提交执行方法
      *
-     * @param  AbstractRequest  $request    跳转类接口的 request
-     * @param  string           $httpMethod 提交方式(post、get)
-     * @param  string|null      $appAuthToken
+     * @param  Request     $request    跳转类接口的 request
+     * @param  string      $httpMethod 提交方式(post、get)
+     * @param  string|null $appAuthToken
+     *
      * @return string 跳转 URL(GET) 或 HTML 表单(POST)
      */
-    public function requestFromPage (AbstractRequest $request, $httpMethod = "POST", $appAuthToken = null)
+    public function requestFromPage (Request $request, $httpMethod = "POST", $appAuthToken = null)
     {
         $params = array_merge($this->getApiParams($request), $this->getSystemParams($request, $appAuthToken));
         $params['sign'] = $this->sign($this->buildParamsString($params));
@@ -299,12 +301,13 @@ class AlipayClient
     /**
      * 获取业务请求参数
      *
-     * @param  AbstractRequest  $request
+     * @param  Request  $request
+     *
      * @return array
      * @throws InvalidRequestContentException
      * @throws \RuntimeException
      */
-    private function getApiParams (AbstractRequest $request)
+    private function getApiParams (Request $request)
     {
         $apiParams = $request->getApiParams();
 
@@ -328,11 +331,12 @@ class AlipayClient
     /**
      * 获取请求的公共参数
      *
-     * @param  AbstractRequest  $request
-     * @param  string|null      $appAuthToken
+     * @param  Request      $request
+     * @param  string|null  $appAuthToken
+     *
      * @return array
      */
-    private function getSystemParams (AbstractRequest $request, $appAuthToken = null)
+    private function getSystemParams (Request $request, $appAuthToken = null)
     {
         return array_filter([
             'app_id' => $this->getAppId(),

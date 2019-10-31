@@ -1,25 +1,20 @@
 <?php
 /**
- * 芝麻认证开始认证接口
- * ALIPAY API: zhima.customer.certification.certify request
- * @since 1.0, 2018-08-29 14:42:03
+ * 芝麻认证查询接口
+ * ALIPAY API: zhima.customer.certification.query request
+ * @since 1.0, 2018-08-29 14:41:48
  */
 
-namespace AntOpen\Request;
+namespace AntOpen\Requests;
 
-class ZhimaCustomerCertificationCertifyRequest extends AbstractRequest
+class ZhimaCustomerCertificationQueryRequest extends Request
 {
     /**
-     * 获取 API 签名
-     *
-     * @return string
+     * @var string 接口签名
      */
-	public function getApiMethodName()
-	{
-		return "zhima.customer.certification.certify";
-	}
+    protected $method = 'zhima.customer.certification.query';
 
-	/**
+    /**
      * 设置认证内容
      *
      * @param  array|string  $content
@@ -35,5 +30,5 @@ class ZhimaCustomerCertificationCertifyRequest extends AbstractRequest
         $this->apiParams["biz_content"] = json_encode($content, JSON_UNESCAPED_UNICODE);
 
         return $this;
-    }
+	}
 }

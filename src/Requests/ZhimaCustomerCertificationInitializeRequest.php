@@ -5,7 +5,7 @@
  * @since 1.0, 2018-08-29 14:41:25
  */
 
-namespace AntOpen\Request;
+namespace AntOpen\Requests;
 
 /**
  * Class ZhimaCustomerCertificationInitializeRequest
@@ -32,17 +32,12 @@ namespace AntOpen\Request;
  *
  * "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><zhima_customer_certification_initialize_response><code>40004</code><msg>Business Failed</msg><sub_code>INVALID_PARAMETER</sub_code><sub_msg>参数有误。参数[transaction_id]不是有效的入参</sub_msg><sign>bO47ya+mzymeh4xQl44T8vPwN3GrfHfhNCPK0FHY2zHdff9AkqjWBfKszARy6I1liqj0XZDkc7wCmjKjuAwWkBoKKyt/UR6bB6MDEUmVXJR8qMiq9c97If4TcnnygVT1POubCZ/z2SUTTyb2asmCsZ/aSBx5jAbTBt0tyyzQbv7eUC3pdQ1cy+de1ZNrbFv+r3bshXAECPVp3KC2T7D5bYIyaHBbMD3qRr5hpnfH7Lem1p4nPby0KZK/0NKznPXZeFfp9NXWLg4SWBg3WFR59MzOhoeLBzrjMxoYMn1gkyjTUEiOjZ7WvCD4UfVTQGadtJL2fXF9F46/ZXsqUO+QvQ==</sign></zhima_customer_certification_initialize_response>"
  */
-class ZhimaCustomerCertificationInitializeRequest extends AbstractRequest
+class ZhimaCustomerCertificationInitializeRequest extends Request
 {
     /**
-     * 获取 API 签名
-     *
-     * @return string
+     * @var string 接口签名
      */
-	public function getApiMethodName()
-	{
-		return "zhima.customer.certification.initialize";
-	}
+    protected $method = 'zhima.customer.certification.initialize';
 
     /**
      * 设置认证内容
