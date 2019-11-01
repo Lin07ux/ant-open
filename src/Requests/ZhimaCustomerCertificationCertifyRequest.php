@@ -27,7 +27,7 @@ class ZhimaCustomerCertificationCertifyRequest extends Request
             throw new \InvalidArgumentException('The biz_no of Biz Content can not be empty');
         }
 
-        $this->apiParams["biz_content"] = json_encode($content, JSON_UNESCAPED_UNICODE);
+        $this->params["biz_content"] = json_encode($content, JSON_UNESCAPED_UNICODE);
 
         return $this;
     }

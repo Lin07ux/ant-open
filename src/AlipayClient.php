@@ -21,6 +21,11 @@ class AlipayClient
     const VERSION = '1.0';
 
     /**
+     * 请求数据格式
+     */
+    const FORMAT = 'JSON';
+
+    /**
      * 字符集编码
      */
     const CHARSET = 'utf-8';
@@ -268,7 +273,7 @@ class AlipayClient
 
         // 发送请求，生成响应
         $response = $this->post($this->buildRequestUrl($sysParams), $apiParams);
-        $response = new Response($response, $request->getApiMethodName());
+        $response = new Response($response, $request->getMethod());
 
         if (! $response->verifySignature($this->getAlipayRsaPublicKey(), $this->getSignType())) {
             throw new BadResponseException($response->getSubMessage() ?: 'Failure to verify data signature');
@@ -290,7 +295,7 @@ class AlipayClient
      *
      * @return string 跳转 URL(GET) 或 HTML 表单(POST)
      */
-    public function requestFromPage (Request $request, $httpMethod = "POST", $appAuthToken = null)
+    public function requestFromPage (Request $request, $httpMethod = "GET", $appAuthToken = null)
     {
         $params = array_merge($this->getApiParams($request), $this->getSystemParams($request, $appAuthToken));
         $params['sign'] = $this->sign($this->buildParamsString($params));
@@ -309,7 +314,7 @@ class AlipayClient
      */
     private function getApiParams (Request $request)
     {
-        $apiParams = $request->getApiParams();
+        $apiParams = $request->getParams();
 
         if ($request->getNeedEncrypt()) {
             $apiParams["encrypt_type"] = self::ENCRYPT_TYPE;
@@ -339,14 +344,14 @@ class AlipayClient
     private function getSystemParams (Request $request, $appAuthToken = null)
     {
         return array_filter([
-            'app_id' => $this->getAppId(),
-            'format' => 'JSON',
-            'charset' => self::CHARSET,
-            'method' => $request->getApiMethodName(),
+            'app_id' => $this->appId,
+            'format' => static::FORMAT,
+            'charset' => static::CHARSET,
+            'sign_type' => $this->signType,
+            'method' => $request->getMethod(),
             'return_url' => $request->getReturnUrl(),
-            'sign_type' => $this->getSignType(),
+            'version' => $request->getVersion() ?: static::VERSION,
             'timestamp' => date("Y-m-d H:i:s"),
-            'version' => $request->getApiVersion() ?: self::VERSION,
             'app_auth_token' => $appAuthToken,
         ]);
     }
@@ -390,7 +395,7 @@ class AlipayClient
      * @param  array  $params 请求参数数组
      * @return string
      */
-    protected function buildRequestForm ($params)
+    private function buildRequestForm ($params)
     {
         $action = $this->getGateway().'?charset='.self::CHARSET;
         $form = '<form id="alipaysubmit" name="alipaysubmit" action="'.$action.'" method="POST">';
@@ -427,11 +432,11 @@ class AlipayClient
     /**
      * 发送 POST 请求
      *
-     * @param  string      $url
-     * @param  array|null  $postFields
+     * @param  string  $url
+     * @param  array   $postFields
      * @return string
      */
-    private function post ($url, $postFields = null)
+    private function post ($url, array $postFields = null)
     {
         $ch = curl_init();
 
