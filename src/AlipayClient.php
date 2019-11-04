@@ -314,11 +314,9 @@ class AlipayClient
      */
     private function getApiParams (Request $request)
     {
-        $apiParams = $request->getParams();
+        $apiParams['biz_content'] = $request->getParams(true);
 
         if ($request->getNeedEncrypt()) {
-            $apiParams["encrypt_type"] = self::ENCRYPT_TYPE;
-
             if ($this->isEmpty($apiParams['biz_content'])) {
                 throw new InvalidRequestContentException("The biz_content of request can not be empty");
             }
@@ -327,6 +325,7 @@ class AlipayClient
                 throw new \RuntimeException("AES encrypt key can not be empty");
             }
 
+            $apiParams['encrypt_type'] = self::ENCRYPT_TYPE;
             $apiParams['biz_content'] = Encrypt::encrypt($apiParams['biz_content'], $encryptKey);
         }
 

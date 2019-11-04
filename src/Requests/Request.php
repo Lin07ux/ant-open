@@ -71,11 +71,13 @@ class Request
     /**
      * 获取接口请求参数
      *
-     * @return array
+     * @param  bool  $serialize 是否需要 json 序列化
+     *
+     * @return string|array
      */
-    public function getParams ()
+    public function getParams ($serialize = true)
     {
-        return $this->params;
+        return $serialize ? json_encode($this->params, JSON_UNESCAPED_UNICODE) : $this->params;
     }
 
     /**

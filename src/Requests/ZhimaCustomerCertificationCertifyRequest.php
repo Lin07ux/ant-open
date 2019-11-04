@@ -14,20 +14,20 @@ class ZhimaCustomerCertificationCertifyRequest extends Request
      */
     protected $method = 'zhima.customer.certification.certify';
 
-	/**
-     * 设置认证内容
+    /**
+     * 设置认证的唯一标识
      *
-     * @param  array|string  $content
+     * @param  string  $value 初始化接口获取到的认证标识
      *
      * @return $this
      */
-    public function setBizContent (array $content)
+    public function setBizNoParam ($value)
     {
-        if (empty($content['biz_no'])) {
-            throw new \InvalidArgumentException('The biz_no of Biz Content can not be empty');
+        if (strlen($value) > 32) {
+            throw new \InvalidArgumentException('The value of biz_no param can not exceed 32 characters');
         }
 
-        $this->params["biz_content"] = json_encode($content, JSON_UNESCAPED_UNICODE);
+        $this->params['biz_no'] = $value;
 
         return $this;
     }

@@ -40,32 +40,130 @@ class ZhimaCustomerCertificationInitializeRequest extends Request
     protected $method = 'zhima.customer.certification.initialize';
 
     /**
-     * 设置认证内容
+     * 设置商户请求的唯一标志
      *
-     * @param  array|string  $content
+     * @param  string  $value
      *
      * @return $this
      */
-    public function setBizContent (array $content)
+    public function setTransactionIdParam ($value)
     {
-        if (empty($content['transaction_id'])) {
-            throw new \InvalidArgumentException('The transaction_id of Biz Content can not be empty');
+        if (strlen($value) > 32) {
+            throw new \InvalidArgumentException('The value of transaction_id param can not exceed 32 characters');
         }
 
-        if (empty($content['product_code'])) {
-            throw new \InvalidArgumentException('The product_code of Biz Content can not be empty');
-        }
-
-        if (empty($content['biz_code'])) {
-            throw new \InvalidArgumentException('The biz_code of Biz Content can not be empty');
-        }
-
-        if (empty($content['identity_param'])) {
-            throw new \InvalidArgumentException('The identity_param of Biz Content can not be empty');
-        }
-
-        $this->params["biz_content"] = json_encode($content, JSON_UNESCAPED_UNICODE);
+        $this->params['transaction_id'] = $value;
 
         return $this;
-	}
+    }
+
+    /**
+     * 设置芝麻认证产品码
+     *
+     * @param  string  $value
+     *
+     * @return $this
+     */
+    public function setProductCodeParam ($value)
+    {
+        if (strlen($value) > 32) {
+            throw new \InvalidArgumentException('The value of product_code param can not exceed 32 characters');
+        }
+
+        $this->params['product_code'] = $value;
+
+        return $this;
+    }
+
+    /**
+     * 设置认证场景码
+     *
+     * @param  string  $code
+     *
+     * @return $this
+     */
+    public function setBizCodeParam ($code)
+    {
+        $code = strtoupper($code);
+        $codes = ['FACE', 'CERT_PHOTO', 'CERT_PHOTO_FACE', 'SMART_FACE'];
+
+        if (! in_array($code, $codes)) {
+            throw new \InvalidArgumentException('The value of biz_code param can only be one of '.implode(', ', $codes));
+        }
+
+        $this->params['biz_code'] = $code;
+
+        return $this;
+    }
+
+    /**
+     * 设置认证场景及身份信息
+     *
+     * @param  string  $name 真实姓名
+     * @param  string  $cert 身份证号
+     *
+     * @return $this
+     */
+    public function setIdentityParam ($name, $cert)
+    {
+        if (! preg_match('/^\d{15}(\d{2}[\dxX])?$/', $cert)) {
+            throw new \InvalidArgumentException('The value of identity_param.cert should be the correct ID number of mainland China');
+        }
+
+        $this->params['identity_param'] = [
+            'identity_type' => 'CERT_INFO',
+            'cert_type' => 'IDENTITY_CARD',
+            'cert_name' => $name,
+            'cert_no' => $cert,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * 设置商户可选的一些设置
+     *
+     * @param  string|array  $key
+     * @param  mixed         $value
+     *
+     * @return $this
+     */
+    public function setMerchantConfigParam ($key, $value = null)
+    {
+        if (is_array($key)) {
+            $this->params['merchant_config'] = $key;
+        } else {
+            $this->params['merchant_config'][$key] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * 设置二级商户标识
+     *
+     * @param  string  $value
+     *
+     * @return $this
+     */
+    public function setLinkedMerchantIdParam ($value)
+    {
+        $this->params['linked_merchant_id'] = $value;
+
+        return $this;
+    }
+
+    /**
+     * 设置自定义人脸比对图片
+     *
+     * @param  string  $content 人脸比对图片的 base64 编码格式的字符串
+     *
+     * @return $this
+     */
+    public function setFacePictureParam ($content)
+    {
+        $this->params['face_contrast_picture'] = $content;
+
+        return $this;
+    }
 }
