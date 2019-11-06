@@ -272,15 +272,21 @@ class AlipayClient
         $sysParams["sign"] = $this->sign($this->buildParamsString(array_merge($apiParams, $sysParams)));
 
         // 发送请求，生成响应
-        $response = $this->post($this->buildRequestUrl($sysParams), $apiParams);
-        $response = new Response($response, $request->getMethod());
+        $content = $this->post($this->buildRequestUrl($sysParams), $apiParams);
 
-        if (! $response->verifySignature($this->getAlipayRsaPublicKey(), $this->getSignType())) {
-            throw new BadResponseException($response->getSubMessage() ?: 'Failure to verify data signature');
+        // 解析数据，并验证签名
+        $parser = new Parser($content, $request->getMethod(), static::FORMAT);
+        if (! $this->verifySignature($parser->getOriginal(), $parser->getSignature())) {
+            throw new BadResponseException('Failure to verify data signature');
         }
 
+        // 构造响应数据
+        $response = new Response($parser->getResponse());
         if (! $response->isSuccess()) {
-            throw new BadResponseException($response->getSubMessage() ?: 'Server returns an exception response!');
+            throw new BadResponseException(
+                $response->getErrorMessage() ?: 'Server returns an exception response!',
+                $response->getCode()
+            );
         }
 
         return $response;
@@ -426,6 +432,21 @@ class AlipayClient
         openssl_sign($content, $sign, $this->getCustomerRsaPrivateKey(), $alg);
 
         return base64_encode($sign);
+    }
+
+    /**
+     * 验证签名
+     *
+     * @param  string  $content   待签名内容
+     * @param  string  $signature 签名字符串
+     *
+     * @return bool
+     */
+    private function verifySignature ($content, $signature)
+    {
+        $alg = 'RSA' === strtolower($this->getSignType()) ? OPENSSL_ALGO_SHA1 : OPENSSL_ALGO_SHA256;
+
+        return openssl_verify($content, base64_decode($signature), $this->getAlipayRsaPublicKey(), $alg) === 1;
     }
 
     /**
