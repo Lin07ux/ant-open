@@ -465,22 +465,39 @@ class AlipayClient
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-        if (is_array($postFields) && count($postFields)) {
+        $postBodyString = "";
+        $encodeArray = Array();
+        $postMultipart = false;
+
+        if (is_array($postFields) && 0 < count($postFields)) {
+
             foreach ($postFields as $k => $v) {
-                if ("@" === substr($v, 0, 1)) {
-                    $postFields[$k] = new \CURLFile(substr($v, 1));
+                if ("@" != substr($v, 0, 1)) //判断是不是文件上传
+                {
+                    $postBodyString .= "$k=" . urlencode($this->characet($v, static::CHARSET)) . "&";
+                    $encodeArray[$k] = $this->characet($v, static::CHARSET);
+                } else //文件上传用multipart/form-data，否则用www-form-urlencoded
+                {
+                    $postMultipart = true;
+                    $encodeArray[$k] = new \CURLFile(substr($v, 1));
                 }
+
             }
 
+            unset ($k, $v);
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
 
-            $headers = ['content-type: multipart/form-data;charset='.self::CHARSET.';boundary='.$this->getMillisecond()];
-        } else {
-            $headers = ['content-type: application/x-www-form-urlencoded;charset='.self::CHARSET];
+            if ($postMultipart) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $encodeArray);
+            } else {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, substr($postBodyString, 0, -1));
+            }
         }
 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        if (!$postMultipart) {
+            $headers = array('content-type: application/x-www-form-urlencoded;charset=' . static::CHARSET);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        }
 
         $response = curl_exec($ch);
 
@@ -496,6 +513,26 @@ class AlipayClient
         }
 
         return $response;
+    }
+
+    /**
+     * 转换字符集编码
+     *
+     * @param  String  $data
+     * @param  String  $targetCharset
+     * @return string
+     */
+    function characet($data, $targetCharset)
+    {
+
+        if (!empty($data)) {
+            $fileType = static::CHARSET;
+            if (strcasecmp($fileType, $targetCharset) != 0) {
+                $data = mb_convert_encoding($data, $targetCharset, $fileType);
+            }
+        }
+
+        return $data;
     }
 
     /**
