@@ -8,6 +8,8 @@
 
 namespace AntOpen\Requests;
 
+use AntOpen\Identity\Person;
+
 class AlipayUserCertifyOpenInitializeRequest extends Request
 {
     /**
@@ -52,23 +54,30 @@ class AlipayUserCertifyOpenInitializeRequest extends Request
     /**
      * 设置认证场景及身份信息
      *
-     * @param  string  $name 真实姓名
-     * @param  string  $cert 身份证号
+     * @param  Person|string  $name  真实姓名
+     * @param  string|null    $cert  身份证号
      *
      * @return $this
      */
-    public function setIdentityParam ($name, $cert)
+    public function setIdentityParam ($name, $cert = null)
     {
-        if (! preg_match('/^\d{15}(\d{2}[\dxX])?$/', $cert)) {
-            throw new \InvalidArgumentException('The value of identity_param.cert should be the correct ID number of mainland China');
+        if ($name instanceof Person) {
+            $this->params['identity_param'] = $name->toArray();
+        } else {
+            if (! preg_match('/^\d{15}(\d{2}[\dxX])?$/', $cert)) {
+                throw new \InvalidArgumentException(
+                    'The value of identity_param.cert should be the correct ID number of mainland China'
+                );
+            }
+
+            $this->params['identity_param'] = [
+                'identity_type' => 'CERT_INFO',
+                'cert_type' => 'IDENTITY_CARD',
+                'cert_name' => $name,
+                'cert_no' => $cert,
+            ];
         }
 
-        $this->params['identity_param'] = [
-            'identity_type' => 'CERT_INFO',
-            'cert_type' => 'IDENTITY_CARD',
-            'cert_name' => $name,
-            'cert_no' => $cert,
-        ];
 
         return $this;
     }
