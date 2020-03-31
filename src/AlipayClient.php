@@ -355,6 +355,7 @@ class AlipayClient
             'sign_type' => $this->signType,
             'method' => $request->getMethod(),
             'return_url' => $request->getReturnUrl(),
+            'notify_url' => $request->getNotifyUrl(),
             'version' => $request->getVersion() ?: static::VERSION,
             'timestamp' => date("Y-m-d H:i:s"),
             'app_auth_token' => $appAuthToken,

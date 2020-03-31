@@ -36,16 +36,21 @@ class Request
     protected $returnUrl;
 
     /**
+     * @var string 支付宝主动通知的 url
+     */
+    protected $notifyUrl;
+
+    /**
      * Request constructor.
      *
      * @param  array   $params      请求参数
      * @param  bool    $needEncrypt 是否需要加密数据
      * @param  string  $returnUrl   返回地址 url
      */
-    public function __construct (array $params = [], $needEncrypt = false, $returnUrl = null)
+    public function __construct (array $params = [], $needEncrypt = false, $returnUrl = null, $notifyUrl = null)
     {
         $this->params = $params ?: [];
-        $this->setNeedEncrypt($needEncrypt)->setReturnUrl($returnUrl);
+        $this->setNeedEncrypt($needEncrypt)->setReturnUrl($returnUrl)->setReturnUrl($notifyUrl);
     }
 
     /**
@@ -134,5 +139,28 @@ class Request
     public function getReturnUrl ()
     {
         return $this->returnUrl;
+    }
+
+    /**
+     * 设置支付宝主动通知 url
+     *
+     * @param  string  $notifyUrl
+     * @return $this
+     */
+    public function setNotifyUrl ($notifyUrl)
+    {
+        $this->notifyUrl = (string)$notifyUrl ?: null;
+
+        return $this;
+    }
+
+    /**
+     * 获取支付宝主动通知 url
+     *
+     * @return string
+     */
+    public function getNotifyUrl ()
+    {
+        return $this->notifyUrl;
     }
 }
