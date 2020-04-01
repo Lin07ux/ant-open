@@ -12,6 +12,7 @@
 
 namespace AntOpen\Requests;
 
+use AntOpen\Common\GoodDetail;
 use AntOpen\Common\PayChannel;
 use AntOpen\Common\Settle;
 
@@ -84,7 +85,7 @@ class AlipayTradePrecreateRequest extends Request
         $amount = (int)(number_format($amount, 2) * 100);
 
         if ($amount < 1 || $amount > 100000000 * 100) {
-            throw new \InvalidArgumentException('订单总金额的应不小于 0.01 元，且不大于 1 亿元');
+            throw new \InvalidArgumentException('订单总金额应不小于 0.01 元，且不大于 1 亿元');
         }
 
         $this->params['total_amount'] = (float)($amount / 100);
@@ -380,33 +381,20 @@ class AlipayTradePrecreateRequest extends Request
     }
 
     /**
-     * 添加产品信息
+     * 设置订单包含的商品列表信息
      *
-     * @param integer      $id         编号(自定义编号)
-     * @param string       $name       名称
-     * @param integer      $quantity   数量
-     * @param float        $price      单价(元)
-     * @param string|null  $body       描述信息
-     * @param string|null  $url        展示地址
-     * @param string|null  $category   类目
-     * @param array        $tree       类目树，从类目根节点到叶子节点的类目 id 组成
-     *
+     * @param  GoodDetail[]|array[]  $goods
      * @return $this
      */
-    public function addGoodDetail ($id, $name, $quantity, $price, $body = null, $url = null, $category = null, $tree = [])
+    public function setGoodsDetailParam (array $goods = [])
     {
-        $detail = [
-            'goods_id' => $id,
-            'goods_name' => $name,
-            'quantity' => (integer)$quantity,
-            'price' => number_format($price, 2),
-            'body' => $body,
-            'show_url' => $url,
-            'goods_category' => $category,
-            'categories_tree' => is_string($tree) ? $tree : implode('|', $tree),
-        ];
+        $detail = [];
 
-        array_push($this->params['goods_detail'], array_filter($detail));
+        foreach ($goods as $good) {
+            $detail[] = ($good instanceof GoodDetail) ? $good->toArray() : $good;
+        }
+
+        $this->params['goods_detail'] = $detail;
 
         return $this;
     }
