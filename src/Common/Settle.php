@@ -12,26 +12,6 @@ namespace AntOpen\Common;
 class Settle
 {
     /**
-     * 结算收款方账户为银行卡编号
-     */
-    const PAYEE_CARD = 'cardAliasNo';
-
-    /**
-     * 结算收款方账户为支付宝账号对应的支付宝唯一用户号
-     */
-    const PAYEE_USER = 'userId';
-
-    /**
-     * 结算收款方账户为支付宝登录号
-     */
-    const PAYEE_NAME = 'loginName';
-
-    /**
-     * 结算收款方账户为商户进件时设置的默认结算账号
-     */
-    const PAYEE_DEFAULT = 'defaultSettle';
-
-    /**
      * 二级商户
      */
     const ENTITY_SECOND = 'SecondMerchantID';
@@ -49,16 +29,15 @@ class Settle
     /**
      * Settle constructor.
      *
-     * @param  string       $type       结算收款方的类型
-     * @param  string       $account    结算收款方的账户
+     * @param  Account      $account    结算收款方账户
      * @param  float        $amount     结算金额(元)
      * @param  string|null  $dimension  结算汇总维度
      * @param  string|null  $entityType 结算主体类型
      * @param  string|null  $entityId   结算主体标识
      */
-    public function __construct ($type, $account, $amount, $dimension = null, $entityType = null, $entityId = null)
+    public function __construct (Account $account, $amount, $dimension = null, $entityType = null, $entityId = null)
     {
-        $this->setPayee($type, $account);
+        $this->setAccount($account);
         $this->setAmount($amount);
         $this->setSummaryDimension($dimension);
         $this->setEntity($entityType, $entityId);
@@ -67,26 +46,13 @@ class Settle
     /**
      * 设置结算收款方账户信息
      *
-     * @param  string  $type    结算收款方账户类型
-     * @param  string  $account 结算收款方账户
+     * @param  Account  $account
      * @return $this
      */
-    public function setPayee ($type, $account)
+    public function setAccount (Account $account)
     {
-        if (! in_array($type, [self::PAYEE_CARD, self::PAYEE_USER, self::PAYEE_NAME, self::PAYEE_DEFAULT])) {
-            throw new \InvalidArgumentException('结算收款方账户类型不是有效值');
-        }
-
-        if (empty($account)) {
-            throw new \InvalidArgumentException('结算收款方账户不得为空');
-        }
-
-        if (mb_strlen($account) > 64) {
-            throw new \InvalidArgumentException('结算收款方账户不得超过 64 个字符');
-        }
-
-        $this->info['trans_in_type'] = $type;
-        $this->info['trans_in'] = $account;
+        $this->info['trans_in_type'] = $account->getType();
+        $this->info['trans_in'] = $account->getAccount();
 
         return $this;
     }
@@ -157,6 +123,6 @@ class Settle
      */
     public function toArray ()
     {
-        return array_filter($this->info);
+        return $this->info;
     }
 }
