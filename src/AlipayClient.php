@@ -438,13 +438,15 @@ class AlipayClient
     /**
      * 验证签名
      *
-     * @param  string  $content   待签名内容
-     * @param  string  $signature 签名字符串
+     * @param  array|string  $content   待签名内容
+     * @param  string        $signature 签名字符串
      *
      * @return bool
      */
-    private function verifySignature ($content, $signature)
+    public function verifySignature ($content, $signature)
     {
+        $content = is_array($content) ? $this->buildParamsString($content) : $content;
+        
         $alg = 'RSA' === strtolower($this->getSignType()) ? OPENSSL_ALGO_SHA1 : OPENSSL_ALGO_SHA256;
 
         return openssl_verify($content, base64_decode($signature), $this->getAlipayRsaPublicKey(), $alg) === 1;
